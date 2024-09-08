@@ -25,6 +25,7 @@ export class WebTorrentHlsManager {
     public static initiateManager(webTorrentClient: any) {
         console.log("[WebTorrentHlsManager]: initiateManager");
         if (this.instance == null) {
+            console.log("[WebTorrentHlsManager]: new instance of WebTorrentHlsManager")
             this.instance = new WebTorrentHlsManager(webTorrentClient)
         }
         return this.instance;
@@ -36,6 +37,7 @@ export class WebTorrentHlsManager {
             console.error("WebTorrentHlsManager is not initiated");
             throw Error("WebTorrentHlsManager is not initiated")
         }
+        console.log("Instance: ", this.instance);
         return this.instance
     }
 
@@ -50,6 +52,7 @@ export class WebTorrentHlsManager {
     }
 
     private findFileInTorrent(torrent: any, fileName: string, onTorrent: (torrent: any, file: any) => void) {
+        console.log("[WebTorrentHlsManager]: Find File in Torrent: ", torrent);
         if (torrent.files.length == 1) {
             // There's only 1 file in this torrent...
             onTorrent(torrent, torrent.files.at(0));
@@ -92,8 +95,9 @@ export class WebTorrentHlsManager {
     }
 
     public loadTorrent(torrentURI: string, defaultFileName: string, onTorrent: (torrent: any, file: any) => void) {
-        console.log("[WebTorrentHlsManager]: addTorrent");
+        console.log("[WebTorrentHlsManager]: loadTorrent: ", torrentURI);
         if (torrentURI.startsWith("magnet:?xt=urn:btih:")) {
+            
             const existingTorrent = this.webTorrentClient.get(torrentURI);
             if (existingTorrent) {
                 if (existingTorrent.infoHash != this.activeTorrent.infoHash) {
@@ -106,10 +110,16 @@ export class WebTorrentHlsManager {
                     defaultFileName,
                     onTorrent
                 )
+
+                return;
             }
 
             const self = this;
-            this.webTorrentClient.add(torrentURI, function (torrent: any) {
+            console.log("[WebTorrentHlsManager]: Add Torrent: ", torrentURI)
+            const options = {};
+            this.webTorrentClient.add(torrentURI, options, function (torrent: any) {
+                console.log("[WebTorrentHlsManager]: Found Torrent: ", torrent)
+                self.activeTorrent = torrent;
                 self.findFileInTorrent(
                     torrent, 
                     defaultFileName, 
@@ -117,12 +127,12 @@ export class WebTorrentHlsManager {
                 );
             });
         } else {
-            const fileName = torrentURI.replace("magnet:", "");
+            console.log("[WebTorrentHlsManager]: looking for file:", defaultFileName)
             // We will assume we should find the file in the activeTorrent...
             // TODO: fileIndex...
             if (this.activeTorrent) {
                 const file = this.activeTorrent.files.find((f: any) => {
-                    return f.name.endsWith(fileName)
+                    return f.name.endsWith(defaultFileName)
                 })
                 if (file) {
                     onTorrent(this.activeTorrent, file);
@@ -130,7 +140,7 @@ export class WebTorrentHlsManager {
                     // We might be able to find this file in active Torrent...
                     this.findFileInTorrent(
                         this.activeTorrent,
-                        fileName,
+                        defaultFileName,
                         onTorrent
                     )
                 }
