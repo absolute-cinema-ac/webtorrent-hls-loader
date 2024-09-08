@@ -12,5 +12,17 @@
     "hls"
   ],
   "author": "port8333",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-alias": "^5.1.0",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^22.5.4",
+    "hls.js": "^1.5.15",
+    "native-url": "^0.3.4",
+    "rollup": "^4.21.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-polyfill-node": "^0.13.0",
+    "tslib": "^2.7.0",
+    "typescript": "^5.5.4"
+  }
 }
